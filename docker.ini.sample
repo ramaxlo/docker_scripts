@@ -1,0 +1,7 @@
+[volumes]
+map0src = /opt
+map0dst = /opt
+
+[author]
+name = <Your name>
+email = <Your email>

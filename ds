@@ -1,0 +1,35 @@
+#!/bin/sh
+
+usage()
+{
+	echo "Usage: ds <container id>"
+	echo ""
+}
+
+list_lxc()
+{
+	echo "Available containers:"
+	docker ps -a
+}
+
+check_permission()
+{
+	if [ `whoami` != 'root' ]; then
+		return 1
+	fi
+
+	return 0
+}
+
+if ! check_permission; then
+	echo "Please run it with root permission"
+	exit 1
+fi
+
+if [ -z "$1" ]; then
+	usage
+	list_lxc
+	exit 1
+fi
+
+docker start -a -i $1

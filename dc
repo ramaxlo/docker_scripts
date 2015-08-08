@@ -1,0 +1,95 @@
+#!/usr/bin/python
+
+import os, sys
+import subprocess
+import re
+import utils
+
+def parse_output(s):
+    lines = re.split('\n', s)
+    list = []
+
+    for l in lines:
+        if l.startswith('CONTAINER'):
+            continue
+
+        if l == '':
+            continue
+
+        fields = re.split('\s+', l)
+        tmp = {}
+        tmp['id'] = fields[0]
+        tmp['image'] = fields[1]
+        list.append(tmp)
+
+    return list
+
+def get_containers():
+    out = subprocess.check_output('docker ps -a', shell = True)
+
+    list = parse_output(out)
+
+    return list
+
+def prompt_container(list):
+    print 'Available containers:'
+
+    c = 0
+    for i in list:
+        print '%d) %s (%s)' % (c, i['id'], i['image'])
+        c += 1
+
+    print ''
+    ans = ''
+    while True:
+        ans = raw_input('Select a container: ')
+
+        if not ans:
+            continue
+
+        idx = int(ans)
+        if idx > len(list) - 1:
+            print 'Out of range'
+            continue
+
+        return list[idx]
+
+def get_author_info():
+    config = utils.DockerConfig()
+
+    name = config.get_author_name()
+    email = config.get_author_email()
+
+    if name and email:
+        return '%s <%s>' % (name, email)
+
+    return ''
+
+def run_commit(container, msg, author_info):
+    cmd = 'docker commit '
+
+    if msg:
+        cmd += "-m '%s' " % msg
+
+    if author_info:
+        cmd += "-a '%s' " % author_info
+
+    cmd += '%s %s' % (container['id'], container['image'])
+
+    print cmd
+    os.system(cmd)
+
+def prompt_message():
+    return raw_input('Commit message: ')
+
+if __name__ == '__main__':
+    if not utils.check_permission():
+        print 'Please run it with root permission'
+        sys.exit(1)
+
+    containers = get_containers()
+    author_info = get_author_info()
+
+    c = prompt_container(containers)
+    m = prompt_message()
+    run_commit(c, m, author_info)

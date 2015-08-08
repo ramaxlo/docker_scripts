@@ -1,0 +1,135 @@
+#!/usr/bin/env python
+
+import os, sys
+import subprocess
+import re
+import argparse
+import utils
+
+cmd_base = 'docker run -t -i '
+
+vol_mappings = []
+
+def parse_lines(lines):
+    list = []
+    for l in lines:
+        if l.startswith('REPOSITORY'):
+            continue
+
+        if l == '':
+            continue
+
+        fields = re.split('\s+', l)
+        tmp = {}
+
+        tmp['tag'] = ':'.join(fields[0:2])
+        tmp['id'] = fields[2]
+
+        list.append(tmp)
+
+    return list
+
+def get_image_list():
+    cmd = 'docker images'
+    out = subprocess.check_output(cmd, shell = True)
+
+    lines = re.split('\n', out);
+    list = parse_lines(lines)
+
+    return list
+
+def prompt_image(list):
+    print 'Available images:'
+
+    c = 0
+    for i in list:
+        print '%d) %s (%s)' % (c, i['tag'], i['id'])
+        c += 1
+
+    ans = ''
+    while True:
+        print 'Select an image: ',
+        ans = raw_input('Select an image: ')
+
+        if not ans:
+            continue
+
+        idx = int(ans)
+        if idx > len(list) - 1:
+            print 'Out of range'
+
+        return list[idx]
+
+def get_video_mapping():
+    mappings = ''
+    list = os.listdir('/dev')
+
+    for i in list:
+        if i.startswith('video'):
+            dev = ' --device=/dev/%s' % i
+
+            mappings += dev
+
+    return mappings
+
+def get_audio_mapping():
+    '''Find ALSA devices'''
+    mappings = ''
+    list = os.listdir('/dev/snd')
+
+    for i in list:
+        path = os.path.join('/dev/snd', i)
+        if not os.path.isdir(path):
+            dev = ' --device=%s' % path
+
+            mappings += dev
+
+    return mappings
+
+def run_docker(img):
+    cmd = [cmd_base]
+
+    if args.video:
+        cmd.append(get_video_mapping())
+
+    if args.audio:
+        cmd.append(get_audio_mapping())
+
+    if vol_mappings:
+        cmd.extend(vol_mappings)
+
+    cmd.append('-p 22')
+    cmd.append(img['tag'])
+    cmd.append('/bin/bash')
+
+    print ' '.join(cmd)
+    os.system(' '.join(cmd))
+
+def get_vol_mappings():
+    mappings = []
+
+    config = utils.DockerConfig()
+    list = config.get_volumes()
+
+    for i in list:
+        tmp = '-v %s:%s' % (i['src'], i['dst'])
+        mappings.append(tmp)
+
+    return mappings
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description = 'docker start script')
+    parser.add_argument('-v', '--video', help = 'mapping video devices', action = 'store_true')
+    parser.add_argument('-a', '--audio', help = 'mapping audio devices', action = 'store_true')
+    args = parser.parse_args()
+
+    if not utils.check_permission():
+        print 'Please run it with root permission'
+        sys.exit(1)
+
+    vol_mappings = get_vol_mappings()
+
+    img_list = get_image_list()
+
+    img = prompt_image(img_list)
+    run_docker(img)
