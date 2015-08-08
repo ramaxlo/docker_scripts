@@ -1,4 +1,4 @@
-# Scripts for managing docker tasks
+# Docker scripts
 This is a collection of scripts that I use in my job for managing
 docker containers. These scripts are:
 
