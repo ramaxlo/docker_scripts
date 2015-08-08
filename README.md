@@ -14,8 +14,8 @@ sample is as following:
     [volumes]
     map0src = <Your host absolute directory path>
     map0dst = <Your target absolute directory path>
-    map1src = <Your anthoer host absolute directory path>
-    map1dst = <Your anthoer target absolute directory path>
+    map1src = <Your another host absolute directory path>
+    map1dst = <Your another target absolute directory path>
     
     [author]
     name = <Your name>
