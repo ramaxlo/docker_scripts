@@ -1,35 +1,20 @@
-#!/bin/sh
+#!/usr/bin/python
 
-usage()
-{
-	echo "Usage: ds <container id>"
-	echo ""
-}
+import os, sys
+import utils
 
-list_lxc()
-{
-	echo "Available containers:"
-	docker ps -a
-}
+def run_start(container):
+    cmd = 'docker start -a -i %s' % container['id']
 
-check_permission()
-{
-	if [ `whoami` != 'root' ]; then
-		return 1
-	fi
+    print cmd
+    os.system(cmd)
 
-	return 0
-}
+if __name__ == '__main__':
+    if not utils.check_permission():
+        print 'Please run it with root permission'
+        sys.exit(1)
 
-if ! check_permission; then
-	echo "Please run it with root permission"
-	exit 1
-fi
+    containers = utils.get_containers()
 
-if [ -z "$1" ]; then
-	usage
-	list_lxc
-	exit 1
-fi
-
-docker start -a -i $1
+    c = utils.prompt_container(containers)
+    run_start(c)
