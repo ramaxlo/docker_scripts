@@ -1,5 +1,7 @@
 import ConfigParser
 import os
+import subprocess
+import re
 
 class DockerConfig:
     def __init__(self):
@@ -53,6 +55,55 @@ class DockerConfig:
 
 def check_permission():
     return os.geteuid() == 0
+
+def parse_output(s):
+    lines = re.split('\n', s)
+    list = []
+
+    for l in lines:
+        if l.startswith('CONTAINER'):
+            continue
+
+        if l == '':
+            continue
+
+        fields = re.split('\s+', l)
+        tmp = {}
+        tmp['id'] = fields[0]
+        tmp['image'] = fields[1]
+        list.append(tmp)
+
+    return list
+
+def get_containers():
+    out = subprocess.check_output('docker ps -a', shell = True)
+
+    list = parse_output(out)
+
+    return list
+
+def prompt_container(list):
+    print 'Available containers:'
+
+    c = 0
+    for i in list:
+        print '%d) %s (%s)' % (c, i['id'], i['image'])
+        c += 1
+
+    print ''
+    ans = ''
+    while True:
+        ans = raw_input('Select a container: ')
+
+        if not ans:
+            continue
+
+        idx = int(ans)
+        if idx > len(list) - 1:
+            print 'Out of range'
+            continue
+
+        return list[idx]
 
 if __name__ == '__main__':
     config = DockerConfig()
