@@ -86,6 +86,9 @@ def get_audio_mapping():
 
     return mappings
 
+def get_device_mapping(dlist):
+    return ' '.join(map(lambda x: '--device=%s' % x, dlist))
+
 def run_docker(img):
     cmd = [cmd_base]
 
@@ -94,6 +97,9 @@ def run_docker(img):
 
     if args.audio:
         cmd.append(get_audio_mapping())
+
+    if args.device:
+        cmd.append(get_device_mapping(args.device))
 
     if vol_mappings:
         cmd.extend(vol_mappings)
@@ -119,8 +125,9 @@ def get_vol_mappings():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = 'docker start script')
-    parser.add_argument('-v', '--video', help = 'mapping video devices', action = 'store_true')
-    parser.add_argument('-a', '--audio', help = 'mapping audio devices', action = 'store_true')
+    parser.add_argument('-v', '--video', help = 'Mapping video devices', action = 'store_true')
+    parser.add_argument('-a', '--audio', help = 'Mapping audio devices', action = 'store_true')
+    parser.add_argument('-d', '--device', help = 'Mapping other devices. Can be specified multiple times.', action = 'append')
     args = parser.parse_args()
 
     if not utils.check_permission():
