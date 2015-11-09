@@ -6,7 +6,8 @@ import re
 import argparse
 import utils
 
-cmd_base = 'docker run -t -i '
+#cmd_base = 'docker run -t -i --privileged'
+cmd_base = 'docker run -t -i'
 
 vol_mappings = []
 
@@ -104,6 +105,9 @@ def run_docker(img):
     if vol_mappings:
         cmd.extend(vol_mappings)
 
+    if args.hostnet:
+        cmd.append('--net=host')
+
     cmd.append('-p 22')
     cmd.append(img['tag'])
     cmd.append('/bin/bash')
@@ -128,6 +132,7 @@ if __name__ == '__main__':
     parser.add_argument('-v', '--video', help = 'Mapping video devices', action = 'store_true')
     parser.add_argument('-a', '--audio', help = 'Mapping audio devices', action = 'store_true')
     parser.add_argument('-d', '--device', help = 'Mapping other devices. Can be specified multiple times.', action = 'append')
+    parser.add_argument('-n', '--hostnet', help = 'Use host network.', action = 'store_true')
     args = parser.parse_args()
 
     if not utils.check_permission():
