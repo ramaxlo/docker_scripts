@@ -108,6 +108,9 @@ def run_docker(img):
     if args.hostnet:
         cmd.append('--net=host')
 
+    if args.privileged:
+        cmd.append('--privileged')
+
     cmd.append('-p 22')
     cmd.append(img['tag'])
     cmd.append('/bin/bash')
@@ -133,6 +136,7 @@ if __name__ == '__main__':
     parser.add_argument('-a', '--audio', help = 'Mapping audio devices', action = 'store_true')
     parser.add_argument('-d', '--device', help = 'Mapping other devices. Can be specified multiple times.', action = 'append')
     parser.add_argument('-n', '--hostnet', help = 'Use host network.', action = 'store_true')
+    parser.add_argument('-p', '--privileged', help = 'Enable privileged mode', action = 'store_true')
     args = parser.parse_args()
 
     if not utils.check_permission():
