@@ -49,7 +49,6 @@ def prompt_image(list):
 
     ans = ''
     while True:
-        print 'Select an image: ',
         ans = raw_input('Select an image: ')
 
         if not ans:
